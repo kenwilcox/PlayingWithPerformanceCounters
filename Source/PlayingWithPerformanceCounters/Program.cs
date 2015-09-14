@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -15,14 +11,14 @@ namespace PlayingWithPerformanceCounters
         private static PerformanceCounter _operationsPerSecond;
         private static PerformanceCounter _averageDuration;
         private static PerformanceCounter _averageDurationBase;
-        private static DateTime _startTime;
-        private static Random rand = new Random();
-        private static long startTime = 0;
-        private static long endTime = 0;
+        //private static DateTime _startTime;
+        private static readonly Random Rand = new Random();
+        private static long _startTimeTicks;
+        private static long _endTimeTicks;
 
-        static void Main(string[] args)
+        static void Main()
         {
-            _startTime = DateTime.Now;
+            //_startTime = DateTime.Now;
 
             CreateCounters();
             SetupCounters();
@@ -31,10 +27,10 @@ namespace PlayingWithPerformanceCounters
 
             for (var i = 0; i < 1000; i++)
             {
-                QueryPerformanceCounter(ref startTime);
-                System.Threading.Thread.Sleep(rand.Next(1000));
-                QueryPerformanceCounter(ref endTime);
-                UseCounters(endTime - startTime);
+                QueryPerformanceCounter(ref _startTimeTicks);
+                System.Threading.Thread.Sleep(Rand.Next(1000));
+                QueryPerformanceCounter(ref _endTimeTicks);
+                UseCounters(_endTimeTicks - _startTimeTicks);
             }            
         }
 
@@ -127,8 +123,8 @@ namespace PlayingWithPerformanceCounters
 
         private static void UseCounters(long ticks)
         {
-            var dtTicks = (DateTime.Now - _startTime).Ticks;
-            var op = rand.Next(5);
+            //var dtTicks = (DateTime.Now - _startTime).Ticks;
+            var op = Rand.Next(5);
 
             _totalOperations.Increment();
             _operationsPerSecond.IncrementBy(op);
@@ -136,10 +132,10 @@ namespace PlayingWithPerformanceCounters
             Console.WriteLine(op);
             _averageDuration.IncrementBy(ticks); // or dtTicks
             _averageDurationBase.Increment();
-            _startTime = DateTime.Now;
+            //_startTime = DateTime.Now;
         }
 
         [DllImport("Kernel32.dll")]
-        public static extern void QueryPerformanceCounter(ref long ticks);
+        private static extern void QueryPerformanceCounter(ref long ticks);
     }
 }
